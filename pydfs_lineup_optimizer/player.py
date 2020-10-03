@@ -21,6 +21,7 @@ class Player:
                  fppg: float,
                  rank: PlayerRank = PlayerRank.REGULAR,
                  is_injured: bool = False,
+                 actual: Optional[float] = None,
                  max_exposure: Optional[float] = None,
                  min_exposure: Optional[float] = None,
                  projected_ownership: Optional[float] = None,
@@ -40,12 +41,14 @@ class Player:
         self.is_injured = is_injured
         self.game_info = game_info
         self.roster_order = roster_order
-        self.rank = rank
+        self.rank = rank        
+        self._actual = None # type: Optional[float]
         self._min_exposure = None  # type: Optional[float]
         self._max_exposure = None  # type: Optional[float]
         self._min_deviation = None  # type: Optional[float]
         self._max_deviation = None  # type: Optional[float]
         self._projected_ownership = None  # type: Optional[float]
+        self.actual = actual
         self.min_exposure = min_exposure
         self.max_exposure = max_exposure
         self.min_deviation = min_deviation
@@ -74,6 +77,14 @@ class Player:
     @min_exposure.setter
     def min_exposure(self, min_exposure: Optional[float]):
         self._min_exposure = process_percents(min_exposure)
+
+    @property
+    def actual(self) -> Optional[float]:
+        return self._actual
+
+    @actual.setter
+    def actual(self, actual: Optional[float]):
+        self._actual = process_percents(actual)
 
     @property
     def min_deviation(self) -> Optional[float]:

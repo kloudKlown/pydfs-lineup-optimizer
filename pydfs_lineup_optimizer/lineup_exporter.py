@@ -20,8 +20,8 @@ class LineupExporter:
 
 
 class CSVLineupExporter(LineupExporter):
-    def export(self, filename, render_func=None):
-        with open(filename, 'w') as csvfile:
+    def export(self, filename, render_func=None, mode = 'w'):
+        with open(filename, mode) as csvfile:
             lineup_writer = csv.writer(csvfile, delimiter=',')
             for index, lineup in enumerate(self.lineups):
                 if index == 0:

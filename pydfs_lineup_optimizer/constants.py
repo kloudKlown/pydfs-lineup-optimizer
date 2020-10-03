@@ -24,6 +24,7 @@ class Sport:
     MMA = 'MMA'
     NASCAR = 'NASCAR'
     TENNIS = 'TENNIS'
+    CSGO = 'CSGO'
 
 
 class PlayerRank(Enum):

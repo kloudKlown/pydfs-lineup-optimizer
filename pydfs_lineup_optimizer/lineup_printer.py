@@ -28,12 +28,14 @@ class LineupPrinter(BaseLineupPrinter):
             player.team,
             self._print_game_info(player),
             round(player.fppg, 3),
-            str(player.salary) + '$',
+            round(player.actual*100, 3),
+            str(player.salary) + '$',            
         )
 
     def _print_footer(self, lineup: 'Lineup') -> str:
         footer = 'Fantasy Points %.2f\n' % lineup.fantasy_points_projection
         footer += 'Salary %.2f\n' % lineup.salary_costs
+        footer += 'Actual %.2f\n' % lineup.actual
         ownerships = [player.projected_ownership for player in lineup if player.projected_ownership]
         if ownerships:
             footer += 'Average Ownership %.1f%%\n' % (sum(ownerships) * 100 / len(ownerships))

@@ -44,9 +44,10 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
                 name[1] if len(name) > 1 else '',
                 row['Position'].split('/'),
                 row['TeamAbbrev'],
-                float(row['Salary']),
+                float(row['Salary']),                
                 float(row['AvgPointsPerGame']),
-                game_info=self._parse_game_info(row),
+                actual = float(row['Actual']),
+                game_info = self._parse_game_info(row),
                 **self.get_player_extra(row)
             )
         except KeyError:

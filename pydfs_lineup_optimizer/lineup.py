@@ -38,5 +38,9 @@ class Lineup:
     def salary_costs(self) -> int:
         return sum(player.salary for player in self.players)
 
-    def get_unswappable_players(self) -> List[LineupPlayer]:
+    @property
+    def actual(self) -> float:
+        return sum(player.actual*100 for player in self.players)        
+
+    def get_unswappable_players(self) -> List[LineupPlayer]:        
         return [player for player in self.players if player.is_game_started]

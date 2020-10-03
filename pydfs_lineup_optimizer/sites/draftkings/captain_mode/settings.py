@@ -69,3 +69,10 @@ class DraftKingsCaptainModeWNBASettings(DraftKingsCaptainModeSettings):
 class DraftLingsCaptainModeSoccerSettings(DraftKingsCaptainModeSettings):
     sport = Sport.SOCCER
     positions = POSITIONS_WITH_FLEX[:]
+
+
+@SitesRegistry.register_settings
+class DraftKingsCaptialsModeCSGOSettings(DraftKingsCaptainModeSettings):
+    sport = Sport.CSGO
+    max_from_one_team = 3
+    positions = POSITIONS_WITH_FLEX[:]

@@ -405,7 +405,7 @@ class LineupOptimizer:
                 for constraint in constraints:
                     constraint.post_optimize(extra_variables_names)
             except SolverException:
-                raise LineupOptimizerException('Can\'t generate lineups')
+                return 0
 
     def optimize_lineups(self, lineups: List[Lineup]):
         params = {
