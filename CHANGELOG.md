@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.3.0]
+- Added ability to print statistic after optimization run
+- Added cyclic spacing handling for set_spacing_for_positions method 
+- Added ability to change algorithm for exposure calculation
+- Added min games rule for DK optimizers
+- Added DK CSGO
+- Added DK Tiers
+- Added nascar/mma for FD
+- Refactored export
+- Refactored FanDuel single game optimizers
+- Fixed Yahoo export
+- Fixed restrict from opposing team method with max_allowed parameter
+
+## [v3.2.0]
+- Added randomize with projections range
+- Added max allowed parameter for restrict positions from opposing team
+- Fixed team stacking with spacing
+- Fixed ignore max_exposure in groups
+- Fixed FD Golf
+- Fixed yahoo import
+- Fixed FD NFL positions names
+
 ## [v3.1.1]
 - Fixed position names and ordering for FanDuel LOL classic
 

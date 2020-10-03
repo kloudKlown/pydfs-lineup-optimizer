@@ -6,12 +6,12 @@ from datetime import datetime
 from math import ceil
 from parameterized import parameterized
 from pydfs_lineup_optimizer import get_optimizer
-from pydfs_lineup_optimizer.constants import Site, Sport, PlayerRank
+from pydfs_lineup_optimizer.constants import Site, Sport
 from pydfs_lineup_optimizer.player import Player, GameInfo
 from pydfs_lineup_optimizer.exceptions import LineupOptimizerException
 from pydfs_lineup_optimizer.rules import ProjectedOwnershipRule
 from pydfs_lineup_optimizer.utils import list_intersection
-from pydfs_lineup_optimizer.stacks import PlayersGroup, TeamStack
+from pydfs_lineup_optimizer.stacks import PlayersGroup, TeamStack, PositionsStack
 from .utils import create_players, load_players, count_players_in_lineups
 
 
@@ -55,6 +55,22 @@ class OptimizerRulesTestCase(unittest.TestCase):
         optimized_lineup = next(self.lineup_optimizer.optimize(1))
         random_lineup = next(self.lineup_optimizer.optimize(1, randomness=True))
         self.assertListEqual(optimized_lineup.players, random_lineup.players)
+
+    def test_player_fppg_range(self):
+        test_player = Player(
+            player_id='1',
+            first_name='test',
+            last_name='test',
+            positions=['PG'],
+            team='Test',
+            salary=2000,
+            fppg=0,
+            fppg_ceil=10000,
+            fppg_floor=10000,
+        )
+        self.lineup_optimizer.extend_players([test_player])
+        random_lineup = next(self.lineup_optimizer.optimize(1, randomness=True))
+        self.assertIn(test_player, random_lineup.players)
 
     def test_lineup_with_players_from_same_positions(self):
         self.lineup_optimizer.load_players(create_players(['PG', 'SG', 'SF', 'PF', 'C', 'PG', 'SF', 'PF']))
@@ -151,31 +167,32 @@ class TestPositionsFromSameTeamTestCase(unittest.TestCase):
     ])
     def test_positions_from_same_team(self, combination):
         self.optimizer.stacks = []
-        self.optimizer.set_positions_for_same_team(combination)
+        self.optimizer.add_stack(PositionsStack(combination))
         lineup = next(self.optimizer.optimize(1))
         self.assertEqual(len([p for p in lineup.lineup if p.team == self.first_team]), len(combination))
 
     def test_multiple_positions_from_same_team(self):
         from_same_team = (['PG', 'C'], ['SG', 'SF'])
-        self.optimizer.set_positions_for_same_team(*from_same_team)
+        for position_stack in from_same_team:
+            self.optimizer.add_stack(PositionsStack(position_stack))
         lineup = next(self.optimizer.optimize(1))
         self.assertEqual(len([p for p in lineup.lineup if p.team == self.first_team]), len(from_same_team[0]))
         self.assertEqual(len([p for p in lineup.lineup if p.team == self.second_team]), len(from_same_team[1]))
 
     def test_positions_stack_greater_than_max_from_one_team(self):
         with self.assertRaises(LineupOptimizerException):
-            self.optimizer.set_positions_for_same_team(['PG', 'PG', 'SG', 'SG', 'SF', 'PF', 'C'])
+            self.optimizer.add_stack(PositionsStack(['PG', 'PG', 'SG', 'SG', 'SF', 'PF', 'C']))
 
     def test_incorrect_position_names(self):
         with self.assertRaises(LineupOptimizerException):
-            self.optimizer.set_positions_for_same_team(['G'])
+            self.optimizer.add_stack(PositionsStack(['G']))
 
     def test_empty_positions_stacks_tuple(self):
         with self.assertRaises(LineupOptimizerException):
-            self.optimizer.set_positions_for_same_team([tuple()])
+            self.optimizer.add_stack(PositionsStack([]))
 
     def test_positions_from_same_team_with_combo_position(self):
-        self.optimizer.set_positions_for_same_team(['PG', ('SF', 'C')])
+        self.optimizer.add_stack(PositionsStack(['PG', ('SF', 'C')]))
         lineups = list(self.optimizer.optimize(2))
         for stack in [('PG', 'SF'), ('PG', 'C')]:
             players_in_stack = max([
@@ -331,28 +348,29 @@ class StacksRuleTestCase(unittest.TestCase):
         self.optimizer.settings.max_from_one_team = 4
         self.test_team = 'TEST'
         self.spacing_players = [
-            Player('1', '1', '1', ['PG'], self.test_team, 100, 40, roster_order=1),
-            Player('2', '2', '2', ['SG'], self.test_team, 100, 30, roster_order=2),
-            Player('3', '3', '3', ['SF'], self.test_team, 100, 50, roster_order=3),
+            Player('1', '1', '1', ['PG'], self.test_team, 100, 4, roster_order=1),
+            Player('2', '2', '2', ['SG'], self.test_team, 100, 3, roster_order=2),
+            Player('3', '3', '3', ['SG'], self.test_team, 100, 3, roster_order=2),
+            Player('4', '4', '4', ['SF'], self.test_team, 100, 5, roster_order=3),
+            Player('5', '5', '5', ['PF'], self.test_team, 100, 1, roster_order=4),
         ]
         self.optimizer.load_players(self.players + self.spacing_players)
 
     def test_stacks_correctness(self):
         stacks = [4, 2]
-        self.optimizer.set_team_stacking(stacks)
+        for stack in stacks:
+            self.optimizer.add_stack(TeamStack(stack))
         lineup = next(self.optimizer.optimize(n=1))
         teams = Counter([player.team for player in lineup])
         self.assertListEqual(stacks, [stack[1] for stack in Counter(teams).most_common(len(stacks))])
 
     def test_stack_greater_than_max_from_one_team(self):
-        stacks = [5]
         with self.assertRaises(LineupOptimizerException):
-            self.optimizer.set_team_stacking(stacks)
+            self.optimizer.add_stack(TeamStack(5))
 
     def test_stacks_for_positions(self):
         position = 'PG'
-        stacks = [4]
-        self.optimizer.set_team_stacking(stacks, for_positions=[position])
+        self.optimizer.add_stack(TeamStack(4, for_positions=[position]))
         lineup = next(self.optimizer.optimize(n=1))
         all_position_players_teams = [player.team for player in lineup if position in player.positions]
         self.assertEqual(len(set(all_position_players_teams)), 1)
@@ -360,7 +378,7 @@ class StacksRuleTestCase(unittest.TestCase):
     @parameterized.expand([
         (3, [1, 3]),
         (2, [2, 3]),
-        (1, [3]),
+        (1, [2, 2]),
     ])
     def test_stacks_with_spacing(self, spacing, expected):
         self.optimizer.add_stack(TeamStack(2, spacing=spacing))
@@ -402,6 +420,17 @@ class PositionsForOpposingTeamTestCase(unittest.TestCase):
                          if list_intersection(player.positions, second_team_positions)}
         self.assertFalse(pitcher_games.intersection(hitters_games))
 
+    def test_restrict_positions_for_opposing_team_correctness_max_allowed(self):
+        first_team_positions = ['SP', 'RP']
+        second_team_positions = ['1B', '2B', '3B']
+        self.optimizer.restrict_positions_for_opposing_team(first_team_positions, second_team_positions, 1)
+        lineup = next(self.optimizer.optimize(1))
+        pitcher_games = {player.game_info for player in lineup
+                         if list_intersection(player.positions, first_team_positions)}
+        hitters_games = {player.game_info for player in lineup
+                         if list_intersection(player.positions, second_team_positions)}
+        self.assertEqual(len(pitcher_games.intersection(hitters_games)), 1)
+
     def test_restrict_positions_if_game_not_specified(self):
         for player in self.players:
             player.game_info = None
@@ -419,7 +448,7 @@ class RosterSpacingTestCase(unittest.TestCase):
             Player('5', '5', '5', ['OF'], 'MIL', 3000, 15, ),
             Player('6', '6', '6', ['OF'], 'MIL', 3000, 15, ),
             Player('7', '7', '7', ['OF'], 'MIL', 3000, 15, ),
-            Player('8', '8', '8', ['1B'], 'BOS', 3000, 15, roster_order=1),
+            Player('8', '8', '8', ['1B'], 'BOS', 3000, 10, roster_order=1),
             Player('9', '9', '9', ['2B'], 'BOS', 3000, 20, roster_order=2),
             Player('10', '10', '10', ['3B'], 'BOS', 3000, 25, roster_order=3),
             Player('11', '11', '11', ['1B'], 'NY', 3000, 30, roster_order=4),
@@ -440,6 +469,15 @@ class RosterSpacingTestCase(unittest.TestCase):
         self.optimizer.set_spacing_for_positions(self.positions, 3)
         lineup = next(self.optimizer.optimize(1))
         self.assertIn(self.players_dict['11'], lineup)
+        self.assertIn(self.players_dict['12'], lineup)
+        self.assertIn(self.players_dict['13'], lineup)
+
+    def test_roster_spacing_correctness_cyclic(self):
+        self.optimizer.set_spacing_for_positions(self.positions, 3)
+        player = Player('14', '14', '14', ['1B'], 'NY', 3000, 50, roster_order=1)
+        self.optimizer.extend_players([player])
+        lineup = next(self.optimizer.optimize(1))
+        self.assertIn(player, lineup)
         self.assertIn(self.players_dict['12'], lineup)
         self.assertIn(self.players_dict['13'], lineup)
 
@@ -482,7 +520,7 @@ class TestFanduelMaxFromOneTeamTestCase(unittest.TestCase):
         self.assertNotIn('P', hou_players_positions)
 
     def test_max_hitters_from_one_team_with_stacking(self):
-        self.optimizer.set_team_stacking([5])
+        self.optimizer.add_stack(TeamStack(5))
         lineup = next(self.optimizer.optimize(1))
         hou_players_positions = [player.lineup_position for player in lineup if player.team == 'HOU']
         self.assertEqual(len(hou_players_positions), 5)
@@ -503,8 +541,7 @@ class TestTeamStacksExposureRule(unittest.TestCase):
         self.optimizer.load_players(self.players + self.high_fppg_players)
 
     def test_teams_exposure_correctness_with_stacking(self):
-        self.optimizer.set_teams_max_exposure({self.test_team: 0.5})
-        self.optimizer.set_team_stacking([3])
+        self.optimizer.add_stack(TeamStack(3, max_exposure_per_team={self.test_team: 0.5}))
         lineups = self.optimizer.optimize(2)
         first_lineup = next(lineups)
         second_lineup = next(lineups)
@@ -512,17 +549,13 @@ class TestTeamStacksExposureRule(unittest.TestCase):
         self.assertNotEqual(len([p for p in second_lineup if p in self.high_fppg_players]), len(self.high_fppg_players))
 
     def test_teams_exposure_correctness_with_positions_for_same_team(self):
-        self.optimizer.set_teams_max_exposure({self.test_team: 0.5})
-        self.optimizer.set_positions_for_same_team(self.high_fppg_players_positions)
+        self.optimizer.add_stack(
+            PositionsStack(self.high_fppg_players_positions, max_exposure_per_team={self.test_team: 0.5}))
         lineups = self.optimizer.optimize(2)
         first_lineup = next(lineups)
         second_lineup = next(lineups)
         self.assertEqual(len([p for p in first_lineup if p in self.high_fppg_players]), len(self.high_fppg_players))
         self.assertNotEqual(len([p for p in second_lineup if p in self.high_fppg_players]), len(self.high_fppg_players))
-
-    def test_incorrect_team_name(self):
-        with self.assertRaises(LineupOptimizerException):
-            self.optimizer.set_teams_max_exposure({'WRONG TEAM': 0.5})
 
 
 class TotalTeamsTestCase(unittest.TestCase):
@@ -553,7 +586,8 @@ class TotalTeamsTestCase(unittest.TestCase):
         self.assertEqual(len(set(player.team for player in lineup)), 3)
 
     def test_minimum_teams_with_stacking(self):
-        self.optimizer.set_team_stacking([5, 4])
+        self.optimizer.add_stack(TeamStack(5))
+        self.optimizer.add_stack(TeamStack(4))
         with self.assertRaises(LineupOptimizerException):
             next(self.optimizer.optimize(1))
 
@@ -597,7 +631,8 @@ class TestFanduelSingleGameFootballTestCase(unittest.TestCase):
         self.mvp_players = []
         for player in self.flex_players:
             mvp = deepcopy(player)
-            mvp.rank = PlayerRank.MVP
+            mvp._original_positions = player.positions
+            mvp.positions = ['MVP']
             mvp.fppg *= 1.5
             self.mvp_players.append(mvp)
         self.all_players = self.flex_players + self.mvp_players
@@ -606,8 +641,8 @@ class TestFanduelSingleGameFootballTestCase(unittest.TestCase):
 
     def test_minimum_teams(self):
         lineup = next(self.optimizer.optimize(1))
-        self.assertEqual([player.positions[0] for player in lineup if player.rank == PlayerRank.MVP][0], 'QB')
-        self.assertEqual(len([player for player in lineup if 'QB' in player.positions]), 2)
+        self.assertEqual([player.original_positions[0] for player in lineup if 'MVP' in player.positions][0], 'QB')
+        self.assertEqual(len([player for player in lineup if 'QB' in player.original_positions]), 2)
 
 
 class RestrictPositionsForSameTeamRuleTestCase(unittest.TestCase):
@@ -710,6 +745,20 @@ class PlayersGroupsRuleTestCase(unittest.TestCase):
         lineup = next(self.optimizer.optimize(1))
         self.assertEqual(len([player for player in self.high_fppg_group if player in lineup]), 1)
 
+    def test_group_player_max_exposure(self):
+        group = PlayersGroup(self.group, max_exposure=0.5)
+        self.optimizer.add_players_group(group)
+        lineups = list(self.optimizer.optimize(2))
+        self.assertEqual(len([player for player in self.group if player in lineups[0]]), len(self.group))
+        self.assertEqual(len([player for player in self.group if player in lineups[1]]), 0)
+
+    def test_group_player_max_from_group_max_exposure(self):
+        group = PlayersGroup(self.high_fppg_group, max_from_group=1, max_exposure=0.5)
+        self.optimizer.add_players_group(group)
+        lineups = list(self.optimizer.optimize(2))
+        self.assertEqual(len([player for player in self.high_fppg_group if player in lineups[0]]), 1)
+        self.assertEqual(len([player for player in self.high_fppg_group if player in lineups[1]]), 0)
+
 
 class MinExposureTestCase(unittest.TestCase):
     def setUp(self):
@@ -767,3 +816,84 @@ class MinStartersTestCase(unittest.TestCase):
     def test_min_starters_greater_than_total_players(self):
         with self.assertRaises(LineupOptimizerException):
             self.lineup_optimizer.set_min_starters(9)
+
+
+class TestDraftKingsMaxFromOneTeamTestCase(unittest.TestCase):
+    def setUp(self):
+        self.players = [
+            Player('1', '1', '1', ['SP'], 'ARI', 3000, 20),
+            Player('2', '2', '2', ['SP'], 'NY', 3000, 20),
+            Player('3', '3', '3', ['C'], 'BOS', 3000, 30),
+            Player('4', '4', '4', ['SS'], 'HOU', 3000, 30),
+            Player('5', '5', '5', ['OF'], 'HOU', 3000, 30),
+            Player('6', '6', '6', ['OF'], 'HOU', 3000, 30),
+            Player('7', '7', '7', ['OF'], 'HOU', 3000, 30),
+            Player('8', '8', '8', ['1B'], 'HOU', 3000, 30),
+            Player('9', '9', '9', ['2B'], 'HOU', 3000, 30),
+            Player('10', '10', '10', ['3B'], 'ARI', 3000, 5),
+            Player('11', '11', '11', ['1B'], 'ARI', 3000, 5),
+            Player('12', '12', '12', ['SP'], 'HOU', 3000, 10),
+        ]
+        self.optimizer = get_optimizer(Site.DRAFTKINGS, Sport.BASEBALL)
+        self.optimizer.load_players(self.players)
+
+    def test_max_hitters_from_one_team(self):
+        lineup = next(self.optimizer.optimize(1))
+        hou_players_positions = [player.lineup_position for player in lineup if player.team == 'HOU']
+        self.assertEqual(len(hou_players_positions), 5)
+        self.assertNotIn('P', hou_players_positions)
+
+    def test_max_hitters_from_one_team_with_stacking(self):
+        self.optimizer.add_stack(TeamStack(6))
+        lineup = next(self.optimizer.optimize(1))
+        hou_players_positions = [player.lineup_position for player in lineup if player.team == 'HOU']
+        self.assertEqual(len(hou_players_positions), 6)
+        self.assertIn('P', hou_players_positions)
+
+
+class MinimumGamesTestCase(unittest.TestCase):
+    def setUp(self):
+        first_game_info = GameInfo('HOU', 'BOS', datetime.now(), False)
+        second_game_info = GameInfo('ARI', 'NY', datetime.now(), False)
+        self.players = [
+            Player('1', '1', '1', ['SP'], 'HOU', 3000, 30, game_info=first_game_info),
+            Player('2', '2', '2', ['RP'], 'BOS', 3000, 30, game_info=first_game_info),
+            Player('3', '3', '3', ['C'], 'BOS', 3000, 30, game_info=first_game_info),
+            Player('4', '4', '4', ['SS'], 'HOU', 3000, 30, game_info=first_game_info),
+            Player('5', '5', '5', ['OF'], 'HOU', 3000, 30, game_info=first_game_info),
+            Player('6', '6', '6', ['OF'], 'HOU', 3000, 30, game_info=first_game_info),
+            Player('7', '7', '7', ['OF'], 'HOU', 3000, 30, game_info=first_game_info),
+            Player('8', '8', '8', ['1B'], 'BOS', 3000, 30, game_info=first_game_info),
+            Player('9', '9', '9', ['2B'], 'BOS', 3000, 30, game_info=first_game_info),
+            Player('10', '10', '10', ['3B'], 'BOS', 3000, 30, game_info=first_game_info),
+            Player('11', '11', '11', ['SP'], 'ARI', 3000, 5, game_info=second_game_info),
+            Player('12', '12', '12', ['SS'], 'NY', 3000, 5, game_info=second_game_info),
+            Player('13', '13', '13', ['OF'], 'ARI', 3000, 5, game_info=second_game_info),
+            Player('13', '13', '13', ['OF'], 'NY', 3000, 5, game_info=second_game_info),
+        ]
+        self.optimizer = get_optimizer(Site.DRAFTKINGS, Sport.BASEBALL)
+        self.optimizer.settings.min_games = 2
+        self.optimizer.load_players(self.players)
+
+    def test_minimum_games(self):
+        lineup = next(self.optimizer.optimize(1))
+        self.assertEqual(len(set(player.game_info for player in lineup)), 2)
+
+
+class DraftKingsTiersTestCase(unittest.TestCase):
+    def setUp(self):
+        self.players = [
+            Player('1', '1', '1', ['T1'], 'HOU', 0, 30),
+            Player('2', '2', '2', ['T1'], 'BOS', 0, 30),
+            Player('3', '3', '3', ['T2'], 'BOS', 0, 30),
+            Player('4', '4', '4', ['T2'], 'HOU', 0, 30),
+            Player('5', '5', '5', ['T3'], 'HOU', 0, 30),
+            Player('6', '6', '6', ['T3'], 'HOU', 0, 30),
+        ]
+        self.optimizer = get_optimizer(Site.DRAFTKINGS_TIERS, Sport.BASEBALL)
+        self.optimizer.load_players(self.players)
+
+    def test_tiers(self):
+        lineup = next(self.optimizer.optimize(1))
+        self.assertEqual(len(lineup.lineup), 3)
+        self.assertEqual({p.lineup_position for p in lineup}, {'T1', 'T2', 'T3'})

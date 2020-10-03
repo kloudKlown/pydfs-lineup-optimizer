@@ -9,6 +9,7 @@ class Site:
     FANBALL = 'FANBALL'
     DRAFTKINGS_CAPTAIN_MODE = 'DRAFTKINGS_CAPTAIN_MODE'
     FANDUEL_SINGLE_GAME = 'FANDUEL_SINGLE_GAME'
+    DRAFTKINGS_TIERS = 'DRAFTKINGS_TIERS'
 
 
 class Sport:
@@ -32,3 +33,4 @@ class PlayerRank(Enum):
     PRO = 2
     STAR = 3
     MVP = 4
+    CS = 'CS'
