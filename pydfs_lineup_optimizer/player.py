@@ -42,7 +42,7 @@ class Player:
         self.is_injured = is_injured
         self.game_info = game_info
         self.roster_order = roster_order
-        self.rank = rank        
+        #self.rank = rank        
         self._actual = None # type: Optional[float]
         self._min_exposure = None  # type: Optional[float]
         self._max_exposure = None  # type: Optional[float]

@@ -44,7 +44,7 @@ class Lineup:
 
     @property
     def actual(self) -> float:
-        return sum(player.actual*100 for player in self.players)        
+        return sum(player.actual*100 for player in self.players if player.actual != None)        
 
     def get_unswappable_players(self) -> List[LineupPlayer]:        
         return [player for player in self.players if player.is_game_started]

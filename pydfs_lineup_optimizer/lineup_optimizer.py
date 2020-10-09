@@ -253,14 +253,14 @@ class LineupOptimizer:
             self._check_position_constraint(pos)
         self.players_with_same_position = positions
 
-    # def set_positions_for_same_team(self, *positions_stacks: List[Union[str, Tuple[str, ...]]]):
-    #     warnings.simplefilter('always', DeprecationWarning)
-    #     warnings.warn('set_positions_for_same_team method will be removed in 3.3, use add_stack instead', DeprecationWarning)
-    #     if positions_stacks and positions_stacks[0] is not None:
-    #         team_stacks = [
-    #             PositionsStack(stack, max_exposure_per_team=self.teams_exposures) for stack in positions_stacks]
-    #         for stack in team_stacks:
-    #             self.add_stack(stack)
+    def set_positions_for_same_team(self, *positions_stacks: List[Union[str, Tuple[str, ...]]]):
+        warnings.simplefilter('always', DeprecationWarning)
+        warnings.warn('set_positions_for_same_team method will be removed in 3.3, use add_stack instead', DeprecationWarning)
+        if positions_stacks and positions_stacks[0] is not None:
+            team_stacks = [
+                PositionsStack(stack, max_exposure_per_team=self.teams_exposures) for stack in positions_stacks]
+            for stack in team_stacks:
+                self.add_stack(stack)
 
     def set_max_repeating_players(self, max_repeating_players: int):
         if max_repeating_players >= self.total_players:
@@ -286,13 +286,13 @@ class LineupOptimizer:
         else:
             self.remove_rule(ProjectedOwnershipRule)
 
-    # def set_team_stacking(self, stacks: Optional[List[int]], for_positions: Optional[List[str]] = None):
-    #     warnings.simplefilter('always', DeprecationWarning)
-    #     warnings.warn('set_team_stacking method will be removed in 3.3, use add_stack instead', DeprecationWarning)
-    #     if stacks:
-    #         team_stacks = [TeamStack(stack, for_positions=for_positions, max_exposure_per_team=self.teams_exposures) for stack in stacks]
-    #         for stack in team_stacks:
-    #             self.add_stack(stack)
+    def set_team_stacking(self, stacks: Optional[List[int]], for_positions: Optional[List[str]] = None):
+        warnings.simplefilter('always', DeprecationWarning)
+        warnings.warn('set_team_stacking method will be removed in 3.3, use add_stack instead', DeprecationWarning)
+        if stacks:
+            team_stacks = [TeamStack(stack, for_positions=for_positions, max_exposure_per_team=self.teams_exposures) for stack in stacks]
+            for stack in team_stacks:
+                self.add_stack(stack)
 
     def restrict_positions_for_opposing_team(
             self,
@@ -418,7 +418,8 @@ class LineupOptimizer:
             except SolverException:
                 return 0
 
-    def optimize_lineups(self, lineups: List[Lineup]):
+    def optimize_lineups(self, lineups: List[Lineup]):        
+        print(self.players)
         players = [player for player in self.players if player.max_exposure is None or player.max_exposure > 0]
         context = OptimizationContext(
             total_lineups=len(lineups),

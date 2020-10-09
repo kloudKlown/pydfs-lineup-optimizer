@@ -16,3 +16,5 @@ docs/_build
 .eggs
 venv
 env
+*.mps
+*.sol

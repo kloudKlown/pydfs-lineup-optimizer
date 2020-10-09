@@ -187,7 +187,7 @@ class DraftKingsTennisSettings(DraftKingsSettings):
 
 @SitesRegistry.register_settings
 class DraftKingsCSGOSettings(DraftKingsSettings):
-    sport = Sport.CS
+    sport = Sport.CSGO
     max_from_one_team = 3
     min_games = 2
     csv_importer = DraftKingsCaptainModeCSVImporter
