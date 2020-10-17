@@ -42,7 +42,7 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
                 row['ID'],
                 name[0],
                 name[1] if len(name) > 1 else '',
-                row['Position'].split('/'),
+                row['Roster Position'].split('/'),
                 row['TeamAbbrev'],
                 float(row['Salary']),                
                 float(row['AvgPointsPerGame']),

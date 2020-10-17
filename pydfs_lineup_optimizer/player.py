@@ -4,7 +4,7 @@ from pytz import timezone
 from typing import List, Optional
 from pydfs_lineup_optimizer.utils import process_percents
 from pydfs_lineup_optimizer.tz import get_timezone
-
+import json
 
 GameInfo = namedtuple('GameInfo', ['home_team', 'away_team', 'starts_at', 'game_started'])
 
@@ -136,7 +136,17 @@ class Player:
     @property
     def original_positions(self) -> List[str]:
         return self._original_positions or self.positions
-
+    
+    @property
+    def get_json(self) -> str:
+        player_json = {}
+        player_json["ID"] = self.id
+        player_json["Name"] = '{} {}'.format(self.first_name, self.last_name)
+        player_json["Team"] = self.team
+        player_json["Positions"] = self.positions
+        player_json["Salary"] = self.salary
+        player_json["Fppg"] = self.fppg
+        return json.dumps(player_json)
 
 class LineupPlayer:
     def __init__(self, player: Player, lineup_position: str, used_fppg: Optional[float] = None):

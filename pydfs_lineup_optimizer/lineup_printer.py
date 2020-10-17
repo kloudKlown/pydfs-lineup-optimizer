@@ -28,7 +28,7 @@ class LineupPrinter(BaseLineupPrinter):
             positions='/'.join(player.original_positions),
             team=player.team,
             game=self._print_game_info(player),
-            actual=0,
+            actual=player.actual,
             fppg=round(player.fppg, 3) if player.used_fppg is None else
             '%s(%s)' % (round(player.fppg, 3), round(player.used_fppg, 3)),
             salary=str(player.salary) + '$',

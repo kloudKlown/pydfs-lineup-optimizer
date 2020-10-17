@@ -29,7 +29,6 @@ class CSVLineupExporter(LineupExporter):
             for index, lineup in enumerate(self.lineups):
                 if index == 0:
                     header = [player.lineup_position for player in lineup.lineup]
-                    input(header)
                     header.extend(('Budget', 'FPPG'))
                     lineup_writer.writerow(header)
                 row = [(render_func or self.render_player)(player) for player in lineup.lineup]

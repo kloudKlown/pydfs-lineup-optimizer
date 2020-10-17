@@ -10,7 +10,7 @@ from pydfs_lineup_optimizer.lineup_exporter import CSVLineupExporter, FantasyDra
 from pydfs_lineup_optimizer.tz import set_timezone
 from pydfs_lineup_optimizer.stacks import PlayersGroup, TeamStack, PositionsStack, Stack
 from pydfs_lineup_optimizer.exposure_strategy import TotalExposureStrategy, AfterEachExposureStrategy
-
+from pydfs_lineup_optimizer import db_writer
 
 __all__ = [
     'get_optimizer', 'Site', 'Sport', 'Player', 'LineupOptimizerException', 'LineupOptimizerIncorrectTeamName',
