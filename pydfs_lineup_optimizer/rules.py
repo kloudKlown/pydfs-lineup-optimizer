@@ -545,7 +545,7 @@ class MinGamesRule(OptimizerRule):
         min_games = self.optimizer.settings.min_games
         if not min_games:
             return
-        total_players = self.optimizer.settings.get_total_players() or 100
+        total_players = self.optimizer.settings.get_total_players() or 100        
         players_by_games = defaultdict(list)
         for player in self.optimizer.players:
             if player.game_info:

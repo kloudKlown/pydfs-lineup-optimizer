@@ -95,7 +95,8 @@ def link_players_with_positions(
         if is_correct:
             break
     else:
-        raise LineupOptimizerException('Unable to build lineup')
+        #return {}
+        raise LineupOptimizerException('Unable to build lineup')    
     return players_with_positions
 
 

@@ -5,7 +5,7 @@ from .exceptions import SolverException
 
 
 class PuLPSolver(Solver):
-    LP_SOLVER = PULP_CBC_CMD()
+    LP_SOLVER = PULP_CBC_CMD(msg = False)
 
     def __init__(self):
         self.prob = LpProblem('Daily Fantasy Sports', LpMaximize)

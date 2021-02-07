@@ -287,8 +287,8 @@ class LineupOptimizer:
             self.remove_rule(ProjectedOwnershipRule)
 
     def set_team_stacking(self, stacks: Optional[List[int]], for_positions: Optional[List[str]] = None):
-        warnings.simplefilter('always', DeprecationWarning)
-        warnings.warn('set_team_stacking method will be removed in 3.3, use add_stack instead', DeprecationWarning)
+        #warnings.simplefilter('always', DeprecationWarning)
+        #warnings.warn('set_team_stacking method will be removed in 3.3, use add_stack instead', DeprecationWarning)
         if stacks:
             team_stacks = [TeamStack(stack, for_positions=for_positions, max_exposure_per_team=self.teams_exposures) for stack in stacks]
             for stack in team_stacks:

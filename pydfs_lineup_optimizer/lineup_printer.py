@@ -21,6 +21,9 @@ class LineupPrinter(BaseLineupPrinter):
         return ''
 
     def _print_player(self, index: int, player: 'LineupPlayer') -> str:
+        actual = player.actual
+        if actual == None:
+            actual = 0
         return self.OUTPUT_FORMAT.format(
             index=index,
             lineup_position=player.lineup_position,
@@ -28,7 +31,7 @@ class LineupPrinter(BaseLineupPrinter):
             positions='/'.join(player.original_positions),
             team=player.team,
             game=self._print_game_info(player),
-            actual=player.actual,
+            actual=actual*100,
             fppg=round(player.fppg, 3) if player.used_fppg is None else
             '%s(%s)' % (round(player.fppg, 3), round(player.used_fppg, 3)),
             salary=str(player.salary) + '$',
