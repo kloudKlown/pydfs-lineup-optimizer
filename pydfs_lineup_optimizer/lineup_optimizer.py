@@ -1,20 +1,22 @@
+import warnings
 from collections import OrderedDict
 from itertools import chain
 from math import ceil
-from typing import FrozenSet, Type, Generator, Tuple, Optional, List, Dict, Set
+from typing import FrozenSet, Type, Generator, Tuple, Union, Optional, List, Dict, Set, cast
 from pydfs_lineup_optimizer.lineup import Lineup
-from pydfs_lineup_optimizer.solvers import Solver, PuLPSolver, SolverInfeasibleSolutionException
+from pydfs_lineup_optimizer.solvers import Solver, PuLPSolver, SolverException
 from pydfs_lineup_optimizer.exceptions import LineupOptimizerException, LineupOptimizerIncorrectTeamName, \
-    LineupOptimizerIncorrectPositionName, GenerateLineupException
+    LineupOptimizerIncorrectPositionName
 from pydfs_lineup_optimizer.lineup_importer import CSVImporter
 from pydfs_lineup_optimizer.settings import BaseSettings
 from pydfs_lineup_optimizer.player import Player, LineupPlayer, GameInfo
-from pydfs_lineup_optimizer.utils import ratio, link_players_with_positions, get_remaining_positions
+from pydfs_lineup_optimizer.utils import ratio, link_players_with_positions, process_percents, get_remaining_positions
 from pydfs_lineup_optimizer.rules import *
-from pydfs_lineup_optimizer.stacks import BaseGroup, BaseStack, Stack
+from pydfs_lineup_optimizer.stacks import BaseGroup, TeamStack, PositionsStack, BaseStack, Stack
 from pydfs_lineup_optimizer.context import OptimizationContext
 from pydfs_lineup_optimizer.statistics import Statistic
 from pydfs_lineup_optimizer.exposure_strategy import BaseExposureStrategy, TotalExposureStrategy
+
 
 
 BASE_RULES = {TotalPlayersRule, LineupBudgetRule, PositionsRule, MaxFromOneTeamRule, LockedPlayersRule,
@@ -252,14 +254,14 @@ class LineupOptimizer:
             self._check_position_constraint(pos)
         self.players_with_same_position = positions
 
-    def set_positions_for_same_team(self, *positions_stacks: List[Union[str, Tuple[str, ...]]]):
-        warnings.simplefilter('always', DeprecationWarning)
-        warnings.warn('set_positions_for_same_team method will be removed in 3.3, use add_stack instead', DeprecationWarning)
-        if positions_stacks and positions_stacks[0] is not None:
-            team_stacks = [
-                PositionsStack(stack, max_exposure_per_team=self.teams_exposures) for stack in positions_stacks]
-            for stack in team_stacks:
-                self.add_stack(stack)
+    # def set_positions_for_same_team(self, *positions_stacks: List[Union[str, Tuple[str, ...]]]):
+    #     warnings.simplefilter('always', DeprecationWarning)
+    #     warnings.warn('set_positions_for_same_team method will be removed in 3.3, use add_stack instead', DeprecationWarning)
+    #     if positions_stacks and positions_stacks[0] is not None:
+    #         team_stacks = [
+    #             PositionsStack(stack, max_exposure_per_team=self.teams_exposures) for stack in positions_stacks]
+    #         for stack in team_stacks:
+    #             self.add_stack(stack)
 
     def set_max_repeating_players(self, max_repeating_players: int):
         if max_repeating_players >= self.total_players:

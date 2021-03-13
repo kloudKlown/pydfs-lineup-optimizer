@@ -25,7 +25,7 @@ class Sport:
     CSGO = 'CSGO'
 
 
-class PlayerRank(Enum):
+class PlayerRank():
     REGULAR = 1
     PRO = 2
     STAR = 3
