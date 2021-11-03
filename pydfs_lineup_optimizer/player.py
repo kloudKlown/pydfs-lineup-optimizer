@@ -85,7 +85,7 @@ class Player:
 
     @max_exposure.setter
     def max_exposure(self, max_exposure: Optional[float]):
-        self._max_exposure = process_percents(max_exposure)
+        self._max_exposure = max_exposure
 
     @property
     def min_exposure(self) -> Optional[float]:
@@ -93,7 +93,7 @@ class Player:
 
     @min_exposure.setter
     def min_exposure(self, min_exposure: Optional[float]):
-        self._min_exposure = process_percents(min_exposure)
+        self._min_exposure = min_exposure
 
     @property
     def actual(self) -> Optional[float]:
@@ -101,7 +101,7 @@ class Player:
 
     @actual.setter
     def actual(self, actual: Optional[float]):
-        self._actual = process_percents(actual)
+        self._actual = actual
 
     @property
     def min_deviation(self) -> Optional[float]:
@@ -109,7 +109,7 @@ class Player:
 
     @min_deviation.setter
     def min_deviation(self, min_deviation: Optional[float]):
-        self._min_deviation = process_percents(min_deviation)
+        self._min_deviation = min_deviation
         return hash((self.id, self.positions))
 
     def __eq__(self, other):

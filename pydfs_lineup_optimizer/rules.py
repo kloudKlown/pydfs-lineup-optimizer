@@ -554,15 +554,9 @@ class MinGamesRule(OptimizerRule):
         min_games = self.optimizer.settings.min_games
         if not min_games:
             return
-<<<<<<< HEAD
-        total_players = self.optimizer.settings.get_total_players() or 100        
-        players_by_games = defaultdict(list)
-        for player in self.optimizer.players:
-=======
         total_players = self.optimizer.settings.get_total_players() or 100
         players_by_games = defaultdict(list)  # type: DefaultDict[GameInfo, List[Player]]
         for player in self.player_pool.filtered_players:
->>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
             if player.game_info:
                 players_by_games[player.game_info].append(player)
         game_variables = []

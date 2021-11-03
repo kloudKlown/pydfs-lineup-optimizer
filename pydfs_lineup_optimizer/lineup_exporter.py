@@ -23,10 +23,6 @@ class LineupExporter:
 
 
 class CSVLineupExporter(LineupExporter):
-<<<<<<< HEAD
-    def export(self, filename, render_func=None, mode = 'w'):
-        with open(filename, mode) as csvfile:
-=======
     EXTRA_COLUMNS = ('Budget', 'FPPG')  # type: Tuple[str, ...]
     COLUMNS_MAPPING = {}  # type: Dict[str , str]
 
@@ -38,7 +34,6 @@ class CSVLineupExporter(LineupExporter):
 
     def export(self, filename, render_func=None):
         with open(filename, 'w', newline='') as csvfile:
->>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
             lineup_writer = csv.writer(csvfile, delimiter=',')
             for index, lineup in enumerate(self.lineups):
                 if index == 0:

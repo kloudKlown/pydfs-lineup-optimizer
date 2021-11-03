@@ -148,13 +148,10 @@ def get_players_grouped_by_teams(
     return players_by_teams
 
 
-<<<<<<< HEAD
 def process_percents(percent: Optional[float]) -> Optional[float]:
     return percent / 100 if percent and (percent > 1 or percent < 0) else percent
 
 
-=======
->>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
 def get_player_priority(player: 'Player') -> float:
     return float(player.game_info.starts_at.timestamp()) if player.game_info and player.game_info.starts_at else 0.0
 

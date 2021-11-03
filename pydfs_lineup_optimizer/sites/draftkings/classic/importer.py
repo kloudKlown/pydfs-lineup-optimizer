@@ -19,7 +19,6 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
         self._games = {}  # type: Dict[Tuple[Optional[str], Optional[str]], GameInfo]
 
     def _parse_game_info(self, row: Dict) -> Optional[GameInfo]:
-<<<<<<< HEAD
         game_info = ""
         if ("GameInfo" in row):
             game_info = row.get("GameInfo")
@@ -34,24 +33,8 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
                 away_team='',
                 starts_at='',
                 game_started=True)
-=======
-        raw_game_info = row.get('Game Info')
-        if not raw_game_info:
-            return None
-        if raw_game_info in ('In Progress', 'Final'):
-            game_info = self._games.get((None, None))
-            if not game_info:
-                game_info = GameInfo(  # No game info provided, just mark game as started
-                    home_team=None,
-                    away_team=None,
-                    starts_at=None,
-                    game_started=True
-                )
-                self._games[(None, None)] = game_info
-            return game_info
->>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
         try:
-            teams, date, time, tz = raw_game_info.rsplit(' ', 3)
+            teams, date, time, tz = game_info.rsplit(' ', 3)
             away_team, home_team = teams.split('@')
             game_info = self._games.get((home_team, away_team))
             if game_info:
@@ -70,7 +53,6 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
 
     def _row_to_player(self, row: Dict) -> Player:
         try:
-<<<<<<< HEAD
             name = row['Name'].split()
             pos = ""
             if ("Roster Position" in row):
@@ -78,9 +60,6 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
             else:
                 pos = row['Position']
 
-=======
-            name = row['Name'].split(maxsplit=1)
->>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
             player = Player(
                 row['ID'],
                 name[0],

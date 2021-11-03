@@ -43,13 +43,8 @@ class CSVImporter:
             minExp = row.get('MinExposure')
 
         return {
-<<<<<<< HEAD
-            'max_exposure': cls._parse_exposure(str(maxExp)),
-            'min_exposure': cls._parse_exposure(str(minExp)),
-=======
-            'max_exposure': cls._parse_percents(row.get('Max Exposure')),
-            'min_exposure': cls._parse_percents(row.get('Min Exposure')),
->>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
+            'max_exposure': cls._parse_percents(str(maxExp)),
+            'min_exposure': cls._parse_percents(str(minExp)),
             'roster_order': int(roster_order) if roster_order else None,
             'projected_ownership': cls._parse_percents(row.get('Projected Ownership')),
             'min_deviation': cls._parse_percents(row.get('Min Deviation')),
