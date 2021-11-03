@@ -138,11 +138,19 @@ class LineupOptimizer:
             csv_importer = self._settings.csv_importer
         self._players = csv_importer(filename).import_players()
 
+    def load_players_from_Json(self, lineups: str):
+        
+        csv_importer = self._csv_importer
+        if not csv_importer:
+            csv_importer = self._settings.csv_importer
+        self._players = csv_importer("").import_players_from_Json(lineups)        
+
     def load_lineups_from_csv(self, filename: str) -> List[Lineup]:
         csv_importer = self._csv_importer
         if not csv_importer:
             csv_importer = self._settings.csv_importer
-        return csv_importer(filename).import_lineups(self.players)
+        #input(self._players)
+        return csv_importer(filename).import_lineups(self._players)
 
     def load_players(self, players: List[Player]):
         """
@@ -245,7 +253,14 @@ class LineupOptimizer:
             self.add_new_rule(TeamMatesRule)
         else:
             self.remove_rule(TeamMatesRule)
+        # input(self._rules)
         self.players_from_one_team = teams or {}
+
+    def delete_players_from_one_team(self, teams: Optional[Dict[str, int]] = None):
+        # input(self._rules)
+        # self._rules.remove(TeamMatesRule)
+        self.stacks = []
+        self.players_from_one_team = {}
 
     def set_players_with_same_position(self, positions: Dict[str, int]):
         positions = positions or {}
@@ -378,6 +393,7 @@ class LineupOptimizer:
             with_injured=with_injured,
             exposure_strategy=exposure_strategy,
         )
+        
         rules = self._rules.copy()
         rules.update(self.settings.extra_rules)
         if randomness:
@@ -390,7 +406,7 @@ class LineupOptimizer:
         base_solver.setup_solver()
         players_dict = OrderedDict(
             [(player, base_solver.add_variable('Player_%d' % i)) for i, player in enumerate(players)])
-        variables_dict = {v: k for k, v in players_dict.items()}
+        variables_dict = {v: k for k, v in players_dict.items()}        
         constraints = [constraint(self, players_dict, context) for constraint in rules]
         for constraint in constraints:
             constraint.apply(base_solver)
@@ -402,21 +418,22 @@ class LineupOptimizer:
             try:
                 solved_variables = solver.solve()
                 lineup_players = []
-                variables_names = []
+                variables_names = []                
                 for solved_variable in solved_variables:
-                    player = variables_dict.get(solved_variable)
+                    player = variables_dict.get(solved_variable)                    
                     if player:
                         lineup_players.append(player)
                     variables_names.append(solved_variable.name)
                 lineup = self._build_lineup(lineup_players, context)
-                previous_lineup = lineup
+                previous_lineup = lineup                
                 context.add_lineup(lineup)
                 yield lineup
                 if self.total_players and len(self.locked_players) == self.total_players:
                     return
                 for constraint in constraints:
                     constraint.post_optimize(variables_names)
-            except SolverException:
+            except SolverException as e:
+                # print("Exception", e)
                 return 0
 
     def optimize_lineups(self, lineups: List[Lineup]):        
@@ -507,7 +524,7 @@ class LineupOptimizer:
     def _check_team_constraint(self, team: str, num_of_players: int):
         if team not in self.available_teams:
             raise LineupOptimizerIncorrectTeamName('%s is incorrect team name. Choices are [%s]' %
-                                                   (team, ','.join(self.available_teams)))
+                                                   (team, ','.join(self.available_teams)))        
         if self.max_from_one_team and num_of_players > self.max_from_one_team:
             raise LineupOptimizerException('You can\'t set more than %s players from one team.' %
                                            self.max_from_one_team)

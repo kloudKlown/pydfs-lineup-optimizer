@@ -15,11 +15,16 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
     LINEUP_PLAYER_ID_REGEX = r'.+\((?P<id>\d+)\)'
 
     def _parse_game_info(self, row: Dict) -> Optional[GameInfo]:
-        game_info = row.get('Game Info')
+        game_info = ""
+        if ("GameInfo" in row):
+            game_info = row.get("GameInfo")
+        else:
+            game_info = row.get("Game Info")
+
         if not game_info:
             return None
         if game_info in ('In Progress', 'Final'):
-            return GameInfo(  # No game info provided, just mark game as started
+            return GameInfo(     # No game info provided, just mark game as started
                 home_team='',
                 away_team='',
                 starts_at='',
@@ -41,11 +46,17 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
     def _row_to_player(self, row: Dict) -> Player:
         try:
             name = row['Name'].split()
+            pos = ""
+            if ("Roster Position" in row):
+                pos = row['Roster Position']
+            else:
+                pos = row['Position']
+
             player = Player(
                 row['ID'],
                 name[0],
                 name[1] if len(name) > 1 else '',
-                row['Roster Position'].split('/'),
+                pos.split('/'),
                 row['TeamAbbrev'],
                 float(row['Salary']),                
                 float(row['AvgPointsPerGame']),
@@ -56,6 +67,9 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
         except KeyError:
             raise LineupOptimizerIncorrectCSV
         return player
+
+    def import_players_from_Json(self, lineupsJson: str):
+        return [self._row_to_player(row) for row in lineupsJson]
 
     def import_players(self):
         with open(self.filename, 'r') as csv_file:
@@ -81,7 +95,7 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
                 end_column = header.index('Instructions') - 1
             except (IndexError, ValueError):
                 raise LineupOptimizerIncorrectCSV
-            position_names = header[start_column:end_column]
+            position_names = header[start_column:end_column]            
             players_dict = {player.id: player for player in players}
             lineups = []
             for line in lines:
@@ -96,9 +110,12 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
                     if not match:
                         raise LineupOptimizerIncorrectCSV
                     player_id = match.group('id')
+                    player_id = int(player_id)
+                    # input(match)
                     try:
                         player = players_dict[player_id]
                     except KeyError:
+                        input(player_id)
                         raise LineupOptimizerIncorrectCSV('Player not found in players pool')
                     lineup_players.append(LineupPlayer(player, position))
                 lineups.append(Lineup(lineup_players))

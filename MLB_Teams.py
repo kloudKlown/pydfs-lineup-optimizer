@@ -5,15 +5,15 @@ from azure.cosmos import exceptions, CosmosClient, PartitionKey
 import json 
 
 FileName = "MLB.csv"
-TotalCount = 125
+TotalCount = 130
 i = 1
 AllLineups = []
-optimizer = get_optimizer(Site.DRAFTKINGS, Sport.BASKETBALL)
+optimizer = get_optimizer(Site.DRAFTKINGS, Sport.BASEBALL)
 
 cosmosEndpoint = "https://cosmosdfq.documents.azure.com:443/"
 cosmosKey = "CD8lN6OMKOsWA2FXnyDbkbsTgWBqPO7l8YCIyn8HkX8pOS44Hse7sBxdv0ugJCQwYlCeJ73j9E9ODd49wy5gEg=="
 database_name = 'LineupSettings'
-container_name = 'NBA'
+container_name = 'MLB'
 
 Lineups = 'Lineups'
 Lineups_container = 'Lineups'
@@ -27,7 +27,7 @@ Lineupsclient = CosmosClient(cosmosEndpoint, cosmosKey)
 databaseLineups = Lineupsclient.get_database_client(database=Lineups)
 containerLineupsContainer = databaseLineups.get_container_client(container = Lineups_container)
 
-QueryDate = '2021-11-02T19:00:00'
+QueryDate = '2021-09-15T19:05:00'
 
 query = "SELECT * FROM c where c.GameDate = '" + QueryDate + "'"
 items = list(container.query_items(query = query, enable_cross_partition_query = True))
@@ -35,11 +35,12 @@ items = list(container.query_items(query = query, enable_cross_partition_query =
 lineupQuery = "SELECT * FROM Lineups c where c.GameDate = '" + QueryDate + "'"
 lineupList = list(containerLineupsContainer.query_items(query = lineupQuery, enable_cross_partition_query = True))
 gameID = json.loads(lineupList[0]["Lineups"])[0]["GameID"]
+# print(json.loads(lineupList[0]["Lineups"]))
 optimizer.load_players_from_Json(json.loads(lineupList[0]["Lineups"]))
-
+#optimizer.load_players_from_csv(FileName)
 
 optimizer.set_min_salary_cap(49500)
-optimizer.restrict_positions_for_opposing_team(["C"], ["C"])
+optimizer.restrict_positions_for_opposing_team(["SP", "P"], ["1B", "2B", "3B", "C", "SS", "OF"])
 lineupDictionary = {}
 
 AllLineups = []
@@ -49,7 +50,7 @@ def CreateLineups(lineupCount, stack):
     print(stack)
 
     for k, v in stack.items(): 
-        optimizer.add_stack(TeamStack(v, [k], ["PG", "SG", "SF", "PF", "C"]))
+        optimizer.add_stack(TeamStack(v, [k], ["1B", "2B", "3B", "C", "SS", "OF"]))
     lineup_generator = optimizer.optimize(lineupCount)
 
     for lineup in lineup_generator:
@@ -73,7 +74,7 @@ def CreatePlayerStacks(lineupCount, stack):
     optimizer.load_players_from_Json(json.loads(lineupList[0]["Lineups"]))
     # optimizer.load_players_from_csv(FileName)
     optimizer.set_min_salary_cap(49500)
-    optimizer.restrict_positions_for_opposing_team(["C"], ["C"])
+    optimizer.restrict_positions_for_opposing_team(["SP", "P"], ["1B", "2B", "3B", "C", "SS", "OF"])
 
     playerGroup = PlayersGroup([optimizer.get_player_by_name(name) for name in stack], max_exposure=1)
     optimizer.add_stack(Stack([playerGroup]))
@@ -114,14 +115,13 @@ for i in items:
 
 ### Default
 optimizer.set_min_salary_cap(49500)
-# optimizer.restrict_positions_for_opposing_team(["C"], ["C"])
-optimizer.set_team_stacking([3])
+optimizer.restrict_positions_for_opposing_team(["SP", "P"], ["1B", "2B", "3B", "C", "SS", "OF"])
+optimizer.set_team_stacking([5])
 tc = (TotalCount-count)
 lineup_generator = optimizer.optimize(tc)
 lineupScores = {}
 
-for lineup in lineup_generator:
-    print(lineup.fantasy_points_projection)
+for lineup in lineup_generator:    
     if (lineup.fantasy_points_projection > 0):        
         playerIDs = [x.id for x in lineup.players]            
         playerIDs.sort()
@@ -137,5 +137,5 @@ for lineup in lineup_generator:
 print(lineupScores)
 
 exporter = CSVLineupExporter(optimizer.optimize(tc))
-# exporter.export('result_NBA.csv', None, 'w')
+exporter.export('result_MLB.csv', None, 'w')
 db_writer.PrintLineups(AllLineups, gameID)

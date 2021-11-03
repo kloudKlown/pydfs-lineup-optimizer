@@ -23,9 +23,21 @@ class CSVImporter:
         roster_order = row.get('Roster Order')
         fppg_floor = row.get('Projection Floor')
         fppg_ceil = row.get('Projection Ceil')
+        maxExp = 0
+        if ('Max Exposure' in row):
+            maxExp = row.get('Max Exposure')
+        else:
+            maxExp = row.get('MaxExposure')
+
+        minExp = 0
+        if ('Max Exposure' in row):
+            minExp = row.get('Min Exposure')
+        else:
+            minExp = row.get('MinExposure')
+
         return {
-            'max_exposure': cls._parse_exposure(row.get('Max Exposure')),
-            'min_exposure': cls._parse_exposure(row.get('Min Exposure')),
+            'max_exposure': cls._parse_exposure(str(maxExp)),
+            'min_exposure': cls._parse_exposure(str(minExp)),
             'roster_order': int(roster_order) if roster_order else None,
             'projected_ownership': cls._parse_exposure(row.get('Projected Ownership')),
             'min_deviation': cls._parse_exposure(row.get('Min Deviation')),

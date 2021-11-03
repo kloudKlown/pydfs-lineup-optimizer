@@ -16,6 +16,7 @@ class DraftKingsSettings(BaseSettings):
 @SitesRegistry.register_settings
 class DraftKingsBasketballSettings(DraftKingsSettings):
     sport = Sport.BASKETBALL
+    max_from_one_team = 3
     min_games = 2
     positions = [
         LineupPosition('PG', ('PG', )),
@@ -82,7 +83,7 @@ class DraftKingsHockeySettings(DraftKingsSettings):
 class DraftKingsBaseballSettings(DraftKingsSettings):
     sport = Sport.BASEBALL
     min_games = 2
-    max_from_one_team = None
+    max_from_one_team = 5
     extra_rules = [DraftKingsBaseballRosterRule]
     positions = [
         LineupPosition('P', ('SP', 'RP')),

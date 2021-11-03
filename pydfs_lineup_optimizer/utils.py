@@ -132,7 +132,7 @@ def get_players_grouped_by_teams(
 
 
 def process_percents(percent: Optional[float]) -> Optional[float]:
-    return percent / 100 if percent and percent > 1 else percent
+    return percent / 100 if percent and (percent > 1 or percent < 0) else percent
 
 
 def get_player_priority(player: 'Player') -> float:

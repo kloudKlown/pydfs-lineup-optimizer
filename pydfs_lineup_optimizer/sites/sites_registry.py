@@ -9,6 +9,7 @@ class SitesRegistry:
     @classmethod
     def register_settings(cls, settings_cls: Type[BaseSettings]) -> Type[BaseSettings]:
         cls.SETTINGS_MAPPING[settings_cls.site][settings_cls.sport] = settings_cls
+        
         return settings_cls
 
     @classmethod
