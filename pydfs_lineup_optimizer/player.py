@@ -1,12 +1,24 @@
-from collections import namedtuple
 from datetime import datetime
 from pytz import timezone
-from typing import List, Optional
-from pydfs_lineup_optimizer.utils import process_percents
+from typing import List, Optional, Tuple, Sequence
 from pydfs_lineup_optimizer.tz import get_timezone
 import json
 
-GameInfo = namedtuple('GameInfo', ['home_team', 'away_team', 'starts_at', 'game_started'])
+class GameInfo:
+    def __init__(
+            self,
+            home_team: Optional[str],
+            away_team: Optional[str],
+            starts_at: Optional[datetime],
+            game_started: bool = False
+    ):
+        self.home_team = home_team
+        self.away_team = away_team
+        self.starts_at = starts_at
+        self.game_started = game_started
+
+    def __hash__(self):
+        return hash((self.home_team, self.away_team))
 
 
 class Player:
@@ -30,12 +42,13 @@ class Player:
                  is_confirmed_starter: Optional[bool] = None,
                  fppg_floor: Optional[float] = None,
                  fppg_ceil: Optional[float] = None,
+                 progressive_scale: Optional[float] = None,
                  original_positions: Optional[List[str]] = None,
                  ):
         self.id = player_id
         self.first_name = first_name
         self.last_name = last_name
-        self.positions = positions
+        self.positions = positions  # type: ignore
         self.team = team
         self.salary = salary
         self.fppg = fppg
@@ -58,12 +71,14 @@ class Player:
         self.is_confirmed_starter = is_confirmed_starter
         self.fppg_floor = fppg_floor
         self.fppg_ceil = fppg_ceil
-        self._original_positions = original_positions
+        self.progressive_scale = progressive_scale
+        self.original_positions = original_positions  # type: ignore
 
     def __repr__(self):
         return '%s %s (%s)' % (self.full_name, '/'.join(self.positions), self.team)
 
     def __hash__(self):
+<<<<<<< HEAD
         return hash(self.id)
 
     @property
@@ -97,22 +112,12 @@ class Player:
     @min_deviation.setter
     def min_deviation(self, min_deviation: Optional[float]):
         self._min_deviation = process_percents(min_deviation)
+=======
+        return hash((self.id, self.positions))
+>>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
 
-    @property
-    def max_deviation(self) -> Optional[float]:
-        return self._max_deviation
-
-    @max_deviation.setter
-    def max_deviation(self, max_deviation: Optional[float]):
-        self._max_deviation = process_percents(max_deviation)
-
-    @property
-    def projected_ownership(self) -> Optional[float]:
-        return self._projected_ownership
-
-    @projected_ownership.setter
-    def projected_ownership(self, projected_ownership: Optional[float]):
-        self._projected_ownership = process_percents(projected_ownership)
+    def __eq__(self, other):
+        return (self.id, self.positions) == (other.id, other.positions)
 
     @property
     def full_name(self) -> str:
@@ -134,7 +139,15 @@ class Player:
         return False
 
     @property
-    def original_positions(self) -> List[str]:
+    def positions(self) -> Tuple[str, ...]:
+        return self._positions
+
+    @positions.setter
+    def positions(self, value: Sequence[str]):
+        self._positions = tuple(sorted(value))
+
+    @property
+    def original_positions(self) -> Tuple[str, ...]:
         return self._original_positions or self.positions
     
     @property
@@ -147,6 +160,11 @@ class Player:
         player_json["Salary"] = self.salary
         player_json["Fppg"] = self.fppg
         return json.dumps(player_json)
+
+    @original_positions.setter
+    def original_positions(self, value: Optional[Sequence[str]]):
+        self._original_positions = tuple(sorted(value)) if value else None
+
 
 class LineupPlayer:
     def __init__(self, player: Player, lineup_position: str, used_fppg: Optional[float] = None):

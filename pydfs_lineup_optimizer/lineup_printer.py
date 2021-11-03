@@ -11,8 +11,8 @@ class BaseLineupPrinter:
 
 
 class LineupPrinter(BaseLineupPrinter):
-    OUTPUT_FORMAT = '{index:>2}. {lineup_position:<5} {name:<30} {positions:<10} {team:<15} {game:<9}' \
-                    '{fppg:<15}{actual:<15}{salary:<10}\n'
+    OUTPUT_FORMAT = '{index:>2}. {lineup_position:<7} {name:<30}{positions:<6}{team:<15}{game:<9}' \
+                    '{fppg:<15}{salary:<10}\n'
 
     def _print_game_info(self, player: 'LineupPlayer') -> str:
         game_info = player.game_info
@@ -32,16 +32,26 @@ class LineupPrinter(BaseLineupPrinter):
             team=player.team,
             game=self._print_game_info(player),
             actual=actual*100,
-            fppg=round(player.fppg, 3) if player.used_fppg is None else
+            fppg=round(player.fppg, 3) if player.used_fppg is None or player.used_fppg == player.fppg else
             '%s(%s)' % (round(player.fppg, 3), round(player.used_fppg, 3)),
             salary=str(player.salary) + '$',
         )
 
     def _print_footer(self, lineup: 'Lineup') -> str:
+<<<<<<< HEAD
         footer = 'Fantasy Points %.2f\n' % lineup.fantasy_points_projection
         footer += 'Salary %.2f\n' % lineup.salary_costs
         footer += 'Actual %.2f\n' % lineup.actual
         ownerships = [player.projected_ownership for player in lineup if player.projected_ownership]
+=======
+        original_projection = lineup.fantasy_points_projection
+        actual_projection = lineup.actual_fantasy_points_projection
+        footer = 'Fantasy Points %.2f%s\n' % (
+            original_projection, '(%.2f)' % actual_projection if actual_projection != original_projection else '')
+        if lineup.salary_costs:
+            footer += 'Salary %.2f\n' % lineup.salary_costs
+        ownerships = [player.projected_ownership for player in lineup if player.projected_ownership is not None]
+>>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
         if ownerships:
             footer += 'Average Ownership %.1f%%\n' % (sum(ownerships) * 100 / len(ownerships))
         return footer

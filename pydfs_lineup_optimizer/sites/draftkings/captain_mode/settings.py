@@ -67,7 +67,7 @@ class DraftKingsCaptainModeWNBASettings(DraftKingsCaptainModeSettings):
 
 
 @SitesRegistry.register_settings
-class DraftLingsCaptainModeSoccerSettings(DraftKingsCaptainModeSettings):
+class DraftKingsCaptainModeSoccerSettings(DraftKingsCaptainModeSettings):
     sport = Sport.SOCCER
     positions = POSITIONS_WITH_FLEX[:]
 
