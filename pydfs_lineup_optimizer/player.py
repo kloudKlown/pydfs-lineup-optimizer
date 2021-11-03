@@ -55,7 +55,6 @@ class Player:
         self.is_injured = is_injured
         self.game_info = game_info
         self.roster_order = roster_order
-        #self.rank = rank        
         self._actual = None # type: Optional[float]
         self._min_exposure = None  # type: Optional[float]
         self._max_exposure = None  # type: Optional[float]
@@ -78,7 +77,6 @@ class Player:
         return '%s %s (%s)' % (self.full_name, '/'.join(self.positions), self.team)
 
     def __hash__(self):
-<<<<<<< HEAD
         return hash(self.id)
 
     @property
@@ -112,9 +110,7 @@ class Player:
     @min_deviation.setter
     def min_deviation(self, min_deviation: Optional[float]):
         self._min_deviation = process_percents(min_deviation)
-=======
         return hash((self.id, self.positions))
->>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
 
     def __eq__(self, other):
         return (self.id, self.positions) == (other.id, other.positions)

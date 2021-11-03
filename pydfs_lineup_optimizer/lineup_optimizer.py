@@ -434,14 +434,9 @@ class LineupOptimizer:
         base_solver = self._solver_class()
         base_solver.setup_solver()
         players_dict = OrderedDict(
-<<<<<<< HEAD
-            [(player, base_solver.add_variable('Player_%d' % i)) for i, player in enumerate(players)])
-        variables_dict = {v: k for k, v in players_dict.items()}        
-=======
             [(player, base_solver.add_variable(base_solver.build_player_var_name(player, str(i))))
              for i, player in enumerate(players)])
         variables_dict = {v: k for k, v in players_dict.items()}
->>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
         constraints = [constraint(self, players_dict, context) for constraint in rules]
         for constraint in constraints:
             constraint.apply(base_solver)
@@ -472,11 +467,6 @@ class LineupOptimizer:
                 # print("Exception", e)
                 return 0
 
-<<<<<<< HEAD
-    def optimize_lineups(self, lineups: List[Lineup]):        
-        print(self.players)
-        players = [player for player in self.players if player.max_exposure is None or player.max_exposure > 0]
-=======
     def optimize_lineups(
             self,
             lineups: List[Lineup],
@@ -489,7 +479,6 @@ class LineupOptimizer:
             show_deprecation_warning('with_injured parameter is deprecated, use player_pool.with_injured instead')
             self.player_pool.with_injured = with_injured
         players = self.player_pool.filtered_players
->>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
         context = OptimizationContext(
             total_lineups=len(lineups),
             players=players,
@@ -584,11 +573,7 @@ class LineupOptimizer:
     def _check_team_constraint(self, team: str, num_of_players: int):
         if team not in self.player_pool.available_teams:
             raise LineupOptimizerIncorrectTeamName('%s is incorrect team name. Choices are [%s]' %
-<<<<<<< HEAD
-                                                   (team, ','.join(self.available_teams)))        
-=======
                                                    (team, ','.join(self.player_pool.available_teams)))
->>>>>>> 429db96891e91c326a14330c5fc29625ba6d11e8
         if self.max_from_one_team and num_of_players > self.max_from_one_team:
             raise LineupOptimizerException('You can\'t set more than %s players from one team.' %
                                            self.max_from_one_team)
