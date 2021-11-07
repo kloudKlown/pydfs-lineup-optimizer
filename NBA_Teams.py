@@ -5,7 +5,8 @@ from azure.cosmos import exceptions, CosmosClient, PartitionKey
 import json 
 
 FileName = "MLB.csv"
-TotalCount = 125
+TotalCount = 90
+minProjectedOwnership = 0
 i = 1
 AllLineups = []
 optimizer = get_optimizer(Site.DRAFTKINGS, Sport.BASKETBALL)
@@ -27,7 +28,7 @@ Lineupsclient = CosmosClient(cosmosEndpoint, cosmosKey)
 databaseLineups = Lineupsclient.get_database_client(database=Lineups)
 containerLineupsContainer = databaseLineups.get_container_client(container = Lineups_container)
 
-QueryDate = '2021-11-02T19:00:00'
+QueryDate = '2021-11-07T18:00:00'
 
 query = "SELECT * FROM c where c.GameDate = '" + QueryDate + "'"
 items = list(container.query_items(query = query, enable_cross_partition_query = True))
@@ -35,6 +36,7 @@ items = list(container.query_items(query = query, enable_cross_partition_query =
 lineupQuery = "SELECT * FROM Lineups c where c.GameDate = '" + QueryDate + "'"
 lineupList = list(containerLineupsContainer.query_items(query = lineupQuery, enable_cross_partition_query = True))
 gameID = json.loads(lineupList[0]["Lineups"])[0]["GameID"]
+# print(json.loads(lineupList[0]["Lineups"])[0])
 optimizer.load_players_from_Json(json.loads(lineupList[0]["Lineups"]))
 
 
@@ -114,9 +116,10 @@ for i in items:
 
 ### Default
 optimizer.set_min_salary_cap(49500)
-# optimizer.restrict_positions_for_opposing_team(["C"], ["C"])
-optimizer.set_team_stacking([3])
+optimizer.restrict_positions_for_opposing_team(["C"], ["C"])
+optimizer.set_team_stacking([2, 2])
 tc = (TotalCount-count)
+optimizer.set_projected_ownership(min_projected_ownership = minProjectedOwnership, max_projected_ownership=0.35)
 lineup_generator = optimizer.optimize(tc)
 lineupScores = {}
 
@@ -132,9 +135,9 @@ for lineup in lineup_generator:
         print(lineup)
         AllLineups.append(lineup)
         print(count)
-        lineupScores[count] = lineup.actual
+        lineupScores[count] = lineup.actual/100
         count = count + 1
-print(lineupScores)
+print(sorted(lineupScores.items(), key=lambda x:x[1], reverse=True))
 
 exporter = CSVLineupExporter(optimizer.optimize(tc))
 # exporter.export('result_NBA.csv', None, 'w')

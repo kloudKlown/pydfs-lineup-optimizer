@@ -164,8 +164,8 @@ class LineupOptimizer:
         
         csv_importer = self._csv_importer
         if not csv_importer:
-            csv_importer = self._settings.csv_importer
-        self._players = csv_importer("").import_players_from_Json(lineups)        
+            csv_importer = self._settings.csv_importer        
+        self.player_pool.load_players(csv_importer("").import_players_from_Json(lineups)        )
 
     def load_lineups_from_csv(self, filename: str) -> List[Lineup]:
         csv_importer = self._csv_importer
@@ -300,7 +300,7 @@ class LineupOptimizer:
             first_team_positions: List[str],
             second_team_positions: List[str],
             max_allowed: int = 0,
-    ):
+    ):        
         if not self.player_pool.games:
             raise LineupOptimizerException('Game Info isn\'t specified for players')
         self.opposing_teams_position_restriction = (first_team_positions, second_team_positions)
@@ -463,7 +463,8 @@ class LineupOptimizer:
                     return
                 for constraint in constraints:
                     constraint.post_optimize(variables_names)
-            except SolverException as e:
+            except SolverInfeasibleSolutionException as solver_exception:
+                # raise GenerateLineupException(solver_exception.get_user_defined_constraints())
                 # print("Exception", e)
                 return 0
 

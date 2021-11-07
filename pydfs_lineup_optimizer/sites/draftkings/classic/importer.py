@@ -19,24 +19,24 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
         self._games = {}  # type: Dict[Tuple[Optional[str], Optional[str]], GameInfo]
 
     def _parse_game_info(self, row: Dict) -> Optional[GameInfo]:
-        game_info = ""
+        raw_game_info = ""
         if ("GameInfo" in row):
-            game_info = row.get("GameInfo")
+            raw_game_info = row.get("GameInfo")
         else:
-            game_info = row.get("Game Info")
-
-        if not game_info:
+            raw_game_info = row.get("Game Info")
+        
+        if not raw_game_info:
             return None
-        if game_info in ('In Progress', 'Final'):
+        if raw_game_info in ('In Progress', 'Final'):
             return GameInfo(     # No game info provided, just mark game as started
                 home_team='',
                 away_team='',
                 starts_at='',
                 game_started=True)
         try:
-            teams, date, time, tz = game_info.rsplit(' ', 3)
-            away_team, home_team = teams.split('@')
-            game_info = self._games.get((home_team, away_team))
+            teams, date, time, tz = raw_game_info.rsplit(' ', 3)
+            away_team, home_team = teams.split('@')                        
+            game_info = self._games.get((home_team, away_team))            
             if game_info:
                 return game_info
             starts_at = datetime.strptime(date + time, '%m/%d/%Y%I:%M%p').\

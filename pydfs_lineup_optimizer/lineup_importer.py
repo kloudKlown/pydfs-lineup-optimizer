@@ -1,4 +1,8 @@
+from random import Random
 from typing import List, Dict, Any, Optional
+
+from IPython.core.display import Math
+from scipy.sparse.construct import rand
 from pydfs_lineup_optimizer.player import Player
 from pydfs_lineup_optimizer.lineup import Lineup
 from pydfs_lineup_optimizer.exceptions import LineupOptimizerIncorrectCSV
@@ -39,14 +43,20 @@ class CSVImporter:
         minExp = 0
         if ('Max Exposure' in row):
             minExp = row.get('Min Exposure')
-        else:
+        else:            
             minExp = row.get('MinExposure')
 
+        ownerShip = 0
+        if ('Projected Ownership' in row):
+            ownerShip = row.get('Projected Ownership')
+        if ('ProjectedOwnership' in row):
+            ownerShip = row.get('ProjectedOwnership')
+        # input(ownerShip)
         return {
             'max_exposure': cls._parse_percents(str(maxExp)),
             'min_exposure': cls._parse_percents(str(minExp)),
             'roster_order': int(roster_order) if roster_order else None,
-            'projected_ownership': cls._parse_percents(row.get('Projected Ownership')),
+            'projected_ownership': cls._parse_percents(str(ownerShip)),
             'min_deviation': cls._parse_percents(row.get('Min Deviation')),
             'max_deviation': cls._parse_percents(row.get('Max Deviation')),
             'is_confirmed_starter': bool(row.get('Confirmed Starter')),

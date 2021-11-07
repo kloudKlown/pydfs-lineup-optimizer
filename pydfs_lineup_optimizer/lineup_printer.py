@@ -50,6 +50,7 @@ class LineupPrinter(BaseLineupPrinter):
         ownerships = [player.projected_ownership for player in lineup if player.projected_ownership is not None]
         if ownerships:
             footer += 'Average Ownership %.1f%%\n' % (sum(ownerships) * 100 / len(ownerships))
+        footer += 'Actual %.2f\n' % (lineup.actual/100)
         return footer
 
     def print_lineup(self, lineup):
