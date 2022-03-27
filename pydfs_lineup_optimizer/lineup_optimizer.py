@@ -164,7 +164,7 @@ class LineupOptimizer:
         
         csv_importer = self._csv_importer
         if not csv_importer:
-            csv_importer = self._settings.csv_importer        
+            csv_importer = self._settings.csv_importer
         self.player_pool.load_players(csv_importer("").import_players_from_Json(lineups)        )
 
     def load_lineups_from_csv(self, filename: str) -> List[Lineup]:
@@ -512,9 +512,10 @@ class LineupOptimizer:
                 yield lineup
                 continue
             solver = base_solver.copy()  # type: Solver
-            for constraint in constraints:
+            for constraint in constraints:                
                 constraint.apply_for_iteration(solver, previous_lineup)
             try:
+                print(lineup)
                 solved_variables = solver.solve()
                 unswappable_players = lineup.get_unswappable_players()
                 lineup_players = []

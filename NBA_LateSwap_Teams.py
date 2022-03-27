@@ -5,7 +5,7 @@ from azure.cosmos import exceptions, CosmosClient, PartitionKey
 import json 
 
 FileName = "MLB.csv"
-TotalCount = 100
+TotalCount = 30
 i = 1
 AllLineups = []
 optimizer = get_optimizer(Site.DRAFTKINGS, Sport.BASKETBALL)
@@ -27,7 +27,7 @@ Lineupsclient = CosmosClient(cosmosEndpoint, cosmosKey)
 databaseLineups = Lineupsclient.get_database_client(database=Lineups)
 containerLineupsContainer = databaseLineups.get_container_client(container = Lineups_container)
 
-QueryDate = '2021-10-30T19:00:00'
+QueryDate = '2022-03-22T19:00:00'
 
 query = "SELECT * FROM c where c.GameDate = '" + QueryDate + "'"
 items = list(container.query_items(query = query, enable_cross_partition_query = True))
@@ -113,16 +113,15 @@ for i in items:
 
 
 ### Default
-optimizer.set_min_salary_cap(49500)
+optimizer.set_min_salary_cap(45500)
 optimizer.restrict_positions_for_opposing_team(["C"], ["C"])
-optimizer.set_team_stacking([2, 2])
+# optimizer.set_team_stacking([2, 2])
 tc = (TotalCount-count)
-lineup_generator = optimizer.optimize(tc)
+# lineup_generator = optimizer.optimize(tc)
 lineupScores = {}
 lineups = optimizer.load_lineups_from_csv("NBA_Late_Swap.csv")
 
-input(lineups)
-for lineup in lineup_generator:
+for lineup in optimizer.optimize_lineups(lineups):
     print(lineup.fantasy_points_projection)
     if (lineup.fantasy_points_projection > 0):        
         playerIDs = [x.id for x in lineup.players]            
@@ -138,6 +137,6 @@ for lineup in lineup_generator:
         count = count + 1
 print(lineupScores)
 
-exporter = CSVLineupExporter(optimizer.optimize(tc))
-exporter.export('result_NBA.csv', None, 'w')
-db_writer.PrintLineups(AllLineups, gameID)
+exporter = CSVLineupExporter(optimizer.optimize_lineups(lineups))
+exporter.export('result_NBA_Swapped.csv')
+# db_writer.PrintLineups(AllLineups, gameID)

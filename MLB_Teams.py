@@ -5,7 +5,7 @@ from azure.cosmos import exceptions, CosmosClient, PartitionKey
 import json 
 
 FileName = "MLB.csv"
-TotalCount = 130
+TotalCount = 20
 i = 1
 AllLineups = []
 optimizer = get_optimizer(Site.DRAFTKINGS, Sport.BASEBALL)

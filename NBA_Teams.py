@@ -4,9 +4,10 @@ from pydfs_lineup_optimizer import db_writer, PlayersGroup, Stack, TeamStack
 from azure.cosmos import exceptions, CosmosClient, PartitionKey
 import json 
 
-FileName = "MLB.csv"
-TotalCount = 90
-minProjectedOwnership = 0
+FileName = "NBA.csv"
+TotalCount = 27
+minProjectedOwnership = 0.00
+maxProjectedOwnership = 0.60
 i = 1
 AllLineups = []
 optimizer = get_optimizer(Site.DRAFTKINGS, Sport.BASKETBALL)
@@ -28,7 +29,7 @@ Lineupsclient = CosmosClient(cosmosEndpoint, cosmosKey)
 databaseLineups = Lineupsclient.get_database_client(database=Lineups)
 containerLineupsContainer = databaseLineups.get_container_client(container = Lineups_container)
 
-QueryDate = '2021-11-07T18:00:00'
+QueryDate = '2022-03-22T19:00:00'
 
 query = "SELECT * FROM c where c.GameDate = '" + QueryDate + "'"
 items = list(container.query_items(query = query, enable_cross_partition_query = True))
@@ -36,7 +37,7 @@ items = list(container.query_items(query = query, enable_cross_partition_query =
 lineupQuery = "SELECT * FROM Lineups c where c.GameDate = '" + QueryDate + "'"
 lineupList = list(containerLineupsContainer.query_items(query = lineupQuery, enable_cross_partition_query = True))
 gameID = json.loads(lineupList[0]["Lineups"])[0]["GameID"]
-# print(json.loads(lineupList[0]["Lineups"])[0])
+# print(json.loads(lineupList[0]["Lineups"]))
 optimizer.load_players_from_Json(json.loads(lineupList[0]["Lineups"]))
 
 
@@ -71,21 +72,39 @@ def CreateLineups(lineupCount, stack):
 
 def CreatePlayerStacks(lineupCount, stack):
     genCount = 0
-    optimizer = get_optimizer(Site.DRAFTKINGS, Sport.BASEBALL)
-    optimizer.load_players_from_Json(json.loads(lineupList[0]["Lineups"]))
-    # optimizer.load_players_from_csv(FileName)
-    optimizer.set_min_salary_cap(49500)
-    optimizer.restrict_positions_for_opposing_team(["C"], ["C"])
+    # optimizer = get_optimizer(Site.DRAFTKINGS, Sport)
+    # optimizer.load_players_from_Json(json.loads(lineupList[0]["Lineups"]))
+    # optimizer.set_min_salary_cap(49000)
+    # optimizer.restrict_positions_for_opposing_team(["C"], ["C"])
+    # global optimizer
 
-    playerGroup = PlayersGroup([optimizer.get_player_by_name(name) for name in stack], max_exposure=1)
+    playerGroup = []
+    playerList = [name for name in stack]
+    # for name in stack:
+    #     playerGroup.append(PlayersGroup(optimizer.player_pool.get_players(name), max_exposure=1))
+    #     # optimizer.add_players_group(PlayersGroup(optimizer.player_pool.get_players(name), max_exposure=1))
+    #     optimizer.player_pool.lock_player(name)
+
+
+    # optimizer.add_stack(Stack(playerGroup))
+    # optimizer.add_players_group(PlayersGroup(optimizer.player_pool.get_player_by_name(",".join(playerList)), max_exposure=1))
+    playerGroup = PlayersGroup([optimizer.player_pool.get_player_by_name(name) for name in stack], max_exposure=1)
     optimizer.add_stack(Stack([playerGroup]))
     lineup_generator = optimizer.optimize(lineupCount)
-
+    
     for lineup in lineup_generator:
+        # input(lineup)
         if (lineup.fantasy_points_projection > 0):
+            playerIDs = [x.id for x in lineup.players]
+            playerIDs.sort()            
+            playerIDs = ''.join(str(playerIDs))
+            if playerIDs in lineupDictionary:
+                continue            
             print(lineup)
+            lineupDictionary[playerIDs] = 1      
             AllLineups.append(lineup)
             genCount = genCount + 1
+    optimizer.delete_players_from_one_team()
     return genCount    
 
 for i in items:
@@ -110,22 +129,22 @@ for i in items:
         genCount = CreatePlayerStacks(TL, stacks)
         count = count + genCount
     print("Total Count By Players", count)
-    db_writer.PrintLineups(AllLineups, gameID)
+    # db_writer.PrintLineups(AllLineups, gameID)
     input("Enter to continue") 
 
 
 ### Default
-optimizer.set_min_salary_cap(49500)
-optimizer.restrict_positions_for_opposing_team(["C"], ["C"])
-optimizer.set_team_stacking([2, 2])
+# optimizer.set_min_salary_cap(49000)
+# optimizer.restrict_positions_for_opposing_team(["C"], ["C"])
 tc = (TotalCount-count)
-optimizer.set_projected_ownership(min_projected_ownership = minProjectedOwnership, max_projected_ownership=0.35)
+print("total Count", tc)
+optimizer.set_projected_ownership(min_projected_ownership = minProjectedOwnership, max_projected_ownership=maxProjectedOwnership)
 lineup_generator = optimizer.optimize(tc)
 lineupScores = {}
 
 for lineup in lineup_generator:
-    print(lineup.fantasy_points_projection)
-    if (lineup.fantasy_points_projection > 0):        
+    print("Projection", lineup.fantasy_points_projection)
+    if (lineup.fantasy_points_projection >= 0):        
         playerIDs = [x.id for x in lineup.players]            
         playerIDs.sort()
         playerIDs = ''.join(str(playerIDs))

@@ -4,7 +4,7 @@ from pydfs_lineup_optimizer.lineup_printer import BaseLineupPrinter, LineupPrint
 
 
 class Lineup:
-    def __init__(self, players: Iterable[LineupPlayer], printer: Type[BaseLineupPrinter] = LineupPrinter):
+    def __init__(self, players: Iterable[LineupPlayer], printer: Type[BaseLineupPrinter] = LineupPrinter):        
         self.players = tuple(players)
         self.printer = printer()
 
@@ -51,5 +51,5 @@ class Lineup:
     def actual(self) -> float:
         return sum(player.actual*100 for player in self.players if player.actual != None)        
 
-    def get_unswappable_players(self) -> List[LineupPlayer]:        
+    def get_unswappable_players(self) -> List[LineupPlayer]:
         return [player for player in self.players if player.is_game_started]

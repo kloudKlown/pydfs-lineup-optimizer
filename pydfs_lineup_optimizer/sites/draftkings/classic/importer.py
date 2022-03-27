@@ -24,15 +24,16 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
             raw_game_info = row.get("GameInfo")
         else:
             raw_game_info = row.get("Game Info")
-        
-        if not raw_game_info:
-            return None
-        if raw_game_info in ('In Progress', 'Final'):
+
+        if 'In Progress' in raw_game_info or 'Final' in raw_game_info:
             return GameInfo(     # No game info provided, just mark game as started
                 home_team='',
                 away_team='',
                 starts_at='',
                 game_started=True)
+
+        if not raw_game_info:
+            return None
         try:
             teams, date, time, tz = raw_game_info.rsplit(' ', 3)
             away_team, home_team = teams.split('@')                        
@@ -72,6 +73,7 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
                 game_info = self._parse_game_info(row),
                 **self.get_player_extra(row)
             )
+            # print(player, player.game_info.game_started)        
         except KeyError:
             raise LineupOptimizerIncorrectCSV
         return player
@@ -105,7 +107,7 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
             except (IndexError, ValueError):
                 raise LineupOptimizerIncorrectCSV
             position_names = header[start_column:end_column]            
-            players_dict = {player.id: player for player in players}
+            players_dict = {player.id: player for player in players}            
             lineups = []
             for line in lines:
                 if not line[0]:
@@ -124,8 +126,7 @@ class DraftKingsCSVImporter(CSVImporter):  # pragma: nocover
                     try:
                         player = players_dict[player_id]
                     except KeyError:
-                        input(player_id)
-                        raise LineupOptimizerIncorrectCSV('Player not found in players pool')
+                        raise LineupOptimizerIncorrectCSV('Player not found in players pool')                    
                     lineup_players.append(LineupPlayer(player, position))
                 lineups.append(Lineup(lineup_players))
             return lineups

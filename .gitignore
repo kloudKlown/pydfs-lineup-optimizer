@@ -18,3 +18,4 @@ venv
 env
 *.mps
 *.sol
+pydfs_lineup_optimizer/.env

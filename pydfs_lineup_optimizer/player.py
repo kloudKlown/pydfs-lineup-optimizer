@@ -1,4 +1,5 @@
 from datetime import datetime
+from math import fabs
 from pytz import timezone
 from typing import List, Optional, Tuple, Sequence
 from pydfs_lineup_optimizer.tz import get_timezone
@@ -127,7 +128,7 @@ class Player:
     def is_game_started(self) -> bool:
         if self.game_info:
             if self.game_info.game_started:
-                return True
+                return True            
             starts_at = self.game_info.starts_at
             time_now = datetime.now().replace(tzinfo=timezone(get_timezone()))
             if starts_at and time_now > starts_at:

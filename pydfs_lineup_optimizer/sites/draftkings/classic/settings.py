@@ -16,7 +16,7 @@ class DraftKingsSettings(BaseSettings):
 @SitesRegistry.register_settings
 class DraftKingsBasketballSettings(DraftKingsSettings):
     sport = Sport.BASKETBALL
-    max_from_one_team = 3
+    max_from_one_team = 4
     min_games = 2
     positions = [
         LineupPosition('PG', ('PG', )),
